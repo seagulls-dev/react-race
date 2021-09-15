@@ -4,6 +4,8 @@ import axios from "axios";
 const Race = props => {
 
     const [raceIds, setRaceIds] = useState([]);
+    const [showIds,setShowIds] = useState([]);
+
     const [races, setRaces] = useState({});
     const category = [
         {
@@ -19,28 +21,37 @@ const Race = props => {
             key : "4a2788f8-e825-4d36-9894-efd4baf1cfae"
         }
     ];
-    const [filter, setFilter] = useState("9daef0d7-bf3c-4f50-921d-8e818c60fe61")
+    const [filter, setFilter] = useState("9daef0d7-bf3c-4f50-921d-8e818c60fe61");
 
     useEffect(()=>{
         axios.get(`https://api.neds.com.au/rest/v1/racing/?method=nextraces&count=10`)
             .then(res => {
-                console.log(res.data)
                 setRaceIds(res.data.data.next_to_go_ids);
+                setShowIds(res.data.data.next_to_go_ids.slice(0,5));
                 setRaces(res.data.data.race_summaries);
-
-            })
+            });
     },[]);
+
+    useEffect(()=>{
+        const interval = setInterval(() => {
+            if (raceIds.length > 0) {
+                raceIds.splice(0,1);
+                setRaceIds([...raceIds])
+                setShowIds(raceIds.slice(0,5));
+            }
+        }, 1000*60);
+        return () => clearInterval(interval);
+    },[raceIds])
 
     const handleChange = (e) => {
         const value = e.target.value;
         setFilter(value)
-        console.log(value)
     }
 
     return (
         <React.Fragment>
             {
-                raceIds && raceIds.slice(0,5).map((item,idx)=>{
+                raceIds && showIds.map((item,idx)=>{
 
                     let race = races[item];
                     return (
@@ -94,7 +105,6 @@ const Race = props => {
                                         <hr/>
                                     </React.Fragment>
                             }
-
                         </div>
                     )
                 })
